@@ -13,15 +13,16 @@ const getAlbum = async (title) => {
   try {
     const response = await fetch(`http://localhost:5000/api/albums/${title}`);
     const data = await response.json();
+    return data
   } catch (error) {
     console.error(error);
   }
 }
 
 
-const addAlbum = async () => {
+const addAlbum = async (album) => {
   try {
-    const response = await fetch(`http://localhost:5000/api/albums/${album.id}`, {
+    const response = await fetch(`http://localhost:5000/api/albums`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

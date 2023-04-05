@@ -13,8 +13,9 @@ const loadAlbums = async () => {
         <td class="title">${album.title}</td>
         <td class="artist">${album.artist}</td>
         <td class="year">${album.year}</td>
-        <td class="buttons"><button>Edit</button></td>
-        <td class="buttons"><button>Delete</button></td>
+        <td class="buttons"><button class="button button-show">Show</button></td>
+        <td class="buttons"><button class="button button-edit">Edit</button></td>
+        <td class="buttons"><button class="button button-delete">Delete</button></td>
       </tr>
     `
   })
@@ -26,22 +27,27 @@ const loadAlbums = async () => {
 
 // Add the event listeners to buttons
 const addClickEvents = () => {
-  const btns = $all(".buttons button")
-  const album = {}
+  const btns = $all("button")
+  const album = { id: null, title: null, artist: null, year: null }
 
   btns.forEach(btn => {
     btn.addEventListener("click", (e) => {
-      const parent = btn.closest("tr")
-      const props = ["id", "title", "artist", "year"]
-      props.forEach(prop => {
-        album[prop] = parent.querySelector(`.${prop}`).textContent;
-      });
+      if (e.target.textContent !== "Add album") {
+        const parent = btn.closest("tr")
+        const props = ["id", "title", "artist", "year"]
+        props.forEach(prop => {
+          album[prop] = parent.querySelector(`.${prop}`).textContent;
+        });
+      }
+
 
       console.log(album)
 
       // Create modal
       if (e.target.textContent === "Edit") editModal(album)
       else if (e.target.textContent === "Delete") deleteModal(album)
+      else if (e.target.textContent === "Add album") addModal()
+      else if (e.target.textContent === "Show") showModal(album.title)
     })
   })
 }
@@ -50,31 +56,38 @@ const addClickEvents = () => {
 const editModal = (album) => {
   $("main").innerHTML += `
   <div class="overlay" id="edit-overlay"></div>
-  <form action="" id="edit-form" class="invisible">
+  <form action="" id="edit-form" class="invisible modal" novalidate>
     <h2>Edit</h2>
     <input type="text" name="title" placeholder="Title" value="${album.title}">
     <input type="text" name="artist" placeholder="Artist" value="${album.artist}">
     <input type="text" name="year" placeholder="Year" value="${album.year}">
-    <button type="submit">Submit</button>
+    <button type="submit" class="button button-edit">Submit</button>
   </form>
   `
 
-  $("#delete-form").addEventListener("submit", (e) => {
+  $("#edit-form").addEventListener("submit", (e) => {
     e.preventDefault()
 
     const updatedAlbum = {
-      id: parseInt($("#edit-form input[name='id']").value),
+      id: parseInt(album.id),
       title: $("#edit-form input[name='title']").value,
       artist: $("#edit-form input[name='artist']").value,
       year: parseInt($("#edit-form input[name='year']").value)
     }
 
-    updateAlbum(updatedAlbum)
+    updateAlbum(updatedAlbum).then(() => {
+      loadAlbums()
+    })
 
     $(".overlay").remove()
     $("#edit-form").remove()
 
-    location.reload()
+  })
+
+  $(".overlay").addEventListener("click", () => {
+    $(".overlay").remove()
+    $("#edit-form").remove()
+    addClickEvents()
   })
 }
 
@@ -82,10 +95,10 @@ const editModal = (album) => {
 const deleteModal = (album) => {
   $("main").innerHTML += `
   <div class="overlay" id="delete-overlay"></div>
-  <div id="delete-modal">
+  <div id="delete-modal" class="modal">
     <h2>Are you sure you want to delete this album ?</h2>
     <h3>${album.title} - ${album.artist}</h3>
-    <button>Delete</button>
+    <button class="button button-delete">Delete</button>
   </div>
   `
 
@@ -95,44 +108,83 @@ const deleteModal = (album) => {
     album.id = parseInt(album.id)
     album.year = parseInt(album.year)
 
-    deleteAlbum(album)
+    deleteAlbum(album).then(() => {
+      loadAlbums()
+    })
 
     $(".overlay").remove()
     $("#delete-modal").remove()
+  })
 
-    location.reload()
+  $(".overlay").addEventListener("click", () => {
+    $(".overlay").remove()
+    $("#delete-modal").remove()
+    addClickEvents()
   })
 }
 
 
 const addModal = () => {
+  try {
+    $("main").innerHTML += `
+    <div class="overlay" id="add-overlay"></div>
+    <form action="" id="add-modal" class="invisible modal modal--add" novalidate>
+      <h2>Add</h2>
+      <input type="text" name="title" placeholder="Title">
+      <input type="text" name="artist" placeholder="Artist">
+      <input type="text" name="year" placeholder="Year">
+      <button type="submit" class="button button-add">Add</button>
+    </form>
+    `
+
+    $("#add-modal").addEventListener("submit", (e) => {
+      e.preventDefault()
+
+      const newdAlbum = {
+        id: parseInt($("tbody tr:last-of-type td").textContent) + 1,
+        title: $("#add-modal input[name='title']").value,
+        artist: $("#add-modal input[name='artist']").value,
+        year: parseInt($("#add-modal input[name='year']").value)
+      }
+
+      addAlbum(newdAlbum).then(() => {
+        loadAlbums()
+      })
+
+      $(".overlay").remove()
+      $("#add-modal").remove()
+    })
+
+    $(".overlay").addEventListener("click", () => {
+      $(".overlay").remove()
+      $("#add-modal").remove()
+      addClickEvents()
+    })
+  } catch (error) {
+    console.log("error: ", error)
+  }
+}
+
+const showModal = async (title) => {
+  console.log("Title: ", title)
+  const album = await getAlbum(title)
+  console.log("Album:", album)
+
   $("main").innerHTML += `
   <div class="overlay" id="add-overlay"></div>
-  <form action="" id="add-form" class="invisible">
-    <h2>Add</h2>
-    <input type="text" name="title" placeholder="Title" value="${album.title}">
-    <input type="text" name="artist" placeholder="Artist" value="${album.artist}">
-    <input type="text" name="year" placeholder="Year" value="${album.year}">
-    <button type="submit">Add</button>
-  </form>
+  <div id="show-modal" class="modal">
+    <h2>Details</h2>
+    <h3>ID: ${album.id}</h3>
+    <h3>Title: ${album.title}</h3>
+    <h3>Artist: ${album.artist}</h3>
+    <h3>Year: ${album.year}</h3>
+  </div>
   `
 
-  $("#delete-form").addEventListener("submit", (e) => {
-    e.preventDefault()
-
-    const updatedAlbum = {
-      id: parseInt($("#edit-form input[name='id']").value),
-      title: $("#edit-form input[name='title']").value,
-      artist: $("#edit-form input[name='artist']").value,
-      year: parseInt($("#edit-form input[name='year']").value)
-    }
-
-    updateAlbum(updatedAlbum)
-
+  $(".overlay").addEventListener("click", () => {
     $(".overlay").remove()
-    $("#add-form").remove()
-
-    location.reload()
+    $("#show-modal").remove()
+    addClickEvents()
   })
 }
 
