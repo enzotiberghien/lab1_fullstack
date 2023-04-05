@@ -140,14 +140,16 @@ const addModal = () => {
     $("#add-modal").addEventListener("submit", (e) => {
       e.preventDefault()
 
-      const newdAlbum = {
-        id: parseInt($("tbody tr:last-of-type td").textContent) + 1,
+      const lastRowTd = $("tbody tr:last-of-type td");
+      const lastRowId = lastRowTd ? parseInt(lastRowTd.textContent) : 0;
+      const newAlbum = {
+        id: lastRowId + 1 || 1,
         title: $("#add-modal input[name='title']").value,
         artist: $("#add-modal input[name='artist']").value,
         year: parseInt($("#add-modal input[name='year']").value)
-      }
+      };
 
-      addAlbum(newdAlbum).then(() => {
+      addAlbum(newAlbum).then(() => {
         loadAlbums()
       })
 

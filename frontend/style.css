@@ -2,6 +2,14 @@ body {
   font-family: Arial, sans-serif;
 }
 
+body:has(.overlay) {
+  overflow: hidden;
+}
+
+body.modal{
+  overflow: hidden;
+}
+
 table {
   border-collapse: collapse;
   width: 100%;
@@ -67,7 +75,7 @@ tr:hover {
 
 
 .overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   width: 100vw;
   min-height: 100vh;
@@ -80,7 +88,7 @@ tr:hover {
 }
 
 .modal {
-  position: absolute;
+  position: fixed;
   border-radius: 15px;
   inset: 0;
   background-color: white;
