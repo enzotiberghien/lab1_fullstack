@@ -4,6 +4,7 @@ import { $, $all } from "./selectors.js"
 // Load the albums in the table
 const loadAlbums = async () => {
   const albums = await getAlbums()
+  albums.sort((a, b) => a.id - b.id) // Sort by ID ascending
 
   let html = ""
   albums.forEach(album => {
@@ -96,6 +97,7 @@ const deleteModal = (album) => {
   $("main").innerHTML += `
   <div class="overlay" id="delete-overlay"></div>
   <div id="delete-modal" class="modal">
+    <h2>Details</h2>
     <h2>Are you sure you want to delete this album ?</h2>
     <h3>${album.title} - ${album.artist}</h3>
     <button class="button button-delete">Delete</button>
@@ -130,6 +132,7 @@ const addModal = () => {
     <div class="overlay" id="add-overlay"></div>
     <form action="" id="add-modal" class="invisible modal modal--add" novalidate>
       <h2>Add</h2>
+      <input type="text" name="id" placeholder="id">
       <input type="text" name="title" placeholder="Title">
       <input type="text" name="artist" placeholder="Artist">
       <input type="text" name="year" placeholder="Year">
@@ -140,10 +143,8 @@ const addModal = () => {
     $("#add-modal").addEventListener("submit", (e) => {
       e.preventDefault()
 
-      const lastRowTd = $("tbody tr:last-of-type td");
-      const lastRowId = lastRowTd ? parseInt(lastRowTd.textContent) : 0;
       const newAlbum = {
-        id: lastRowId + 1 || 1,
+        id: $("#add-modal input[name='id']").value,
         title: $("#add-modal input[name='title']").value,
         artist: $("#add-modal input[name='artist']").value,
         year: parseInt($("#add-modal input[name='year']").value)
@@ -176,10 +177,16 @@ const showModal = async (title) => {
   <div class="overlay" id="add-overlay"></div>
   <div id="show-modal" class="modal">
     <h2>Details</h2>
-    <h3>ID: ${album.id}</h3>
-    <h3>Title: ${album.title}</h3>
-    <h3>Artist: ${album.artist}</h3>
-    <h3>Year: ${album.year}</h3>
+    <div class="details-grid">
+    <div>ID:</div>
+    <div class="value">${album.id}</div>
+    <div>Title:</div>
+    <div class="value">${album.title}</div>
+    <div>Artist:</div>
+    <div class="value">${album.artist}</div>
+    <div>Year:</div>
+    <div class="value">${album.year}</div>
+  </div>
   </div>
   `
 

@@ -19,7 +19,7 @@ const addAlbum = async (req, res) => {
   try {
     const { id, title, artist, year } = req.body;
     const albumExist = await Album.findOne({ $or: [{ title }, { id }] });
-
+ 
     if (albumExist) {
       return res.status(409).json({ error: "Album already exists" });
     }
@@ -85,7 +85,7 @@ const deleteAlbum = (async (req, res) => {
       return res.status(404).json({ error: `The Album of id ${id} does not exists` });
     }
 
-    const deletedAlbum = await Album.findOneAndDelete({id})
+    const deletedAlbum = await Album.findOneAndDelete({ id })
 
     res.status(200).json(deletedAlbum)
 
